@@ -16,11 +16,11 @@ export const typeDef = gql`
     room: Room
   }
 
-  type Query {
+  extend type Query {
     messages: [Message]
   }
 
-  type Mutation {
+  extend type Mutation {
     sendMessage(message: String!): Boolean
   }
 `;
