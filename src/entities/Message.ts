@@ -1,11 +1,9 @@
 import {
   BaseEntity,
   Column,
-  CreateDateColumn,
   Entity,
   ManyToOne,
   PrimaryGeneratedColumn,
-  UpdateDateColumn,
 } from "typeorm";
 
 import { Room } from "./Room";
@@ -17,17 +15,19 @@ export class Message extends BaseEntity {
   id!: number;
 
   @Column()
-  text: string;
+  text: String;
 
-  @ManyToOne(() => User, (user) => user.id)
+  @ManyToOne(() => User, (user) => user.messages, {
+    cascade: true,
+    onDelete: "CASCADE",
+    onUpdate: "CASCADE",
+  })
   user: User;
 
-  @ManyToOne(() => Room, (room) => room.id)
+  @ManyToOne(() => Room, (room) => room.messages, {
+    cascade: true,
+    onDelete: "CASCADE",
+    onUpdate: "CASCADE",
+  })
   room: Room;
-
-  @CreateDateColumn()
-  createdAt: Date;
-
-  @UpdateDateColumn()
-  updatedAt: Date;
 }

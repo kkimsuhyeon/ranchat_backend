@@ -17,12 +17,16 @@ export class Room extends BaseEntity {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @ManyToMany(() => User, (user) => user.id, { cascade: true })
+  @ManyToMany(() => User, (user) => user.rooms, {
+    cascade: true,
+    onDelete: "CASCADE",
+    onUpdate: "CASCADE",
+  })
   @JoinTable()
-  participation: Array<User>;
+  users: Array<User>;
 
-  @OneToMany(() => Message, (message) => message.id)
-  message: Array<Message>;
+  @OneToMany(() => Message, (message) => message.room)
+  messages: Array<Message>;
 
   @CreateDateColumn()
   createdAt: Date;
