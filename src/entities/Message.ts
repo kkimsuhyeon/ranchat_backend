@@ -1,6 +1,7 @@
 import {
   BaseEntity,
   Column,
+  CreateDateColumn,
   Entity,
   ManyToOne,
   PrimaryGeneratedColumn,
@@ -30,4 +31,7 @@ export class Message extends BaseEntity {
     onUpdate: "CASCADE",
   })
   room: Room;
+
+  @CreateDateColumn()
+  createdAt: Date;
 }

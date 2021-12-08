@@ -12,10 +12,13 @@ export const typeDef = gql`
     id: Int!
     users: [User]
     messages: [Message]
+    createdAt: Date
+    updatedAt: Date
   }
 
   extend type Query {
     rooms: [Room]
+    roomById(id: Int!): Room
   }
 
   extend type Mutation {
@@ -38,6 +41,23 @@ export const resolvers: IResolvers = {
           relations: ["users", "messages", "messages.user"],
         });
         return rooms;
+      } catch (e) {
+        console.log(e);
+        return null;
+      }
+    },
+
+    roomById: async (_: any, args: { id: number }) => {
+      const roomRepo = getRepository(Room);
+
+      const { id } = args;
+
+      try {
+        const room = await roomRepo.findOne({
+          where: { id: id },
+          relations: ["users", "messages", "messages.user"],
+        });
+        return room;
       } catch (e) {
         console.log(e);
         return null;

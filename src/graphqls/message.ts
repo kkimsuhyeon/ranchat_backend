@@ -14,6 +14,7 @@ export const typeDef = gql`
     text: String
     user: User
     room: Room
+    createdAt: Date
   }
 
   extend type Query {
