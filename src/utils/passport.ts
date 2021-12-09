@@ -15,7 +15,6 @@ const jwtOptions: StrategyOptions = {
 };
 
 const verifyUser: VerifyCallback = async (payload, done) => {
-  console.log(payload);
   try {
     const userRepo = getRepository(User);
     const user = await userRepo.findOne({ where: { id: payload.id } });

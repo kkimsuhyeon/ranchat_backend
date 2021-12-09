@@ -1,13 +1,21 @@
 import { ApolloServer, ExpressContext } from "apollo-server-express";
 import { Application } from "express";
 import { Server } from "http";
-import { SubscriptionServer } from "subscriptions-transport-ws";
+import {
+  SubscriptionServer,
+  ConnectionParams,
+} from "subscriptions-transport-ws";
 import { execute, subscribe } from "graphql";
 import schema from "./graphqls/schema";
 import {
   ApolloServerPluginLandingPageDisabled,
   ApolloServerPluginLandingPageGraphQLPlayground,
 } from "apollo-server-core";
+import { getRepository } from "typeorm";
+
+import { decodeToken } from "./utils/generate";
+
+import { User } from "./entities/User";
 
 const apolloConnection = async (app: Application, server: Server) => {
   const subscriptionServer = SubscriptionServer.create(
@@ -15,7 +23,12 @@ const apolloConnection = async (app: Application, server: Server) => {
       schema: schema,
       execute: execute,
       subscribe: subscribe,
-      onConnect: () => {},
+      onConnect: async (connectionParams: ConnectionParams) => {
+        const jsonData = decodeToken(connectionParams.Authorization);
+        const userRepo = getRepository(User);
+        const user = await userRepo.findOne({ where: { id: jsonData.id } });
+        if (!user) throw new Error("Token이 없습니다.");
+      },
     },
     { server: server, path: "/graphql" }
   );

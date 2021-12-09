@@ -41,7 +41,6 @@ export const resolvers: IResolvers = {
   Subscription: {
     call: {
       subscribe: () => {
-        console.log("testSub");
         return pubSub.asyncIterator("call");
       },
       resolve: () => {},

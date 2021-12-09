@@ -2,7 +2,7 @@ import { gql } from "apollo-server-core";
 import { IResolvers } from "@graphql-tools/utils";
 import { getRepository } from "typeorm";
 
-import { generateToken } from "../utils/generate";
+import { encodeToken } from "../utils/generate";
 
 import { CustomError } from "../class/CustomError";
 
@@ -68,7 +68,9 @@ export const resolvers: IResolvers = {
         const user = await userRepo.findOne({
           where: { email: email, password: password },
         });
-        if (user) return generateToken(user.id);
+
+        if (user) return encodeToken(user.id);
+
         throw new CustomError("200", "아이디, 비밀번호를 확인해주세요");
       } catch (e) {
         throw new CustomError("500", e);
