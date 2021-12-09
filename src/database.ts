@@ -12,7 +12,7 @@ const dbConnection = async () => {
       password: process.env.TYPEORM_PASSWORD,
       port: 5432,
       database: "ranchat",
-      logging: true,
+      // logging: true,
       synchronize: true,
       entities: entities,
     });

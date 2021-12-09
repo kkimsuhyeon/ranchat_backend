@@ -4,6 +4,8 @@ import { getRepository } from "typeorm";
 
 import { pubSub } from "../server";
 
+import { tokenAuthenticator } from "../utils/authenticator";
+
 import { Message } from "../entities/Message";
 import { User } from "../entities/User";
 import { Room } from "../entities/Room";
@@ -28,8 +30,10 @@ export const typeDef = gql`
 
 export const resolvers: IResolvers = {
   Query: {
-    messages: async () => {
+    messages: async (_: any, __: any, { req }) => {
       const messageRepo = getRepository(Message);
+
+      tokenAuthenticator(req);
 
       try {
         const result = await messageRepo.find({ relations: ["user", "room"] });
@@ -42,7 +46,9 @@ export const resolvers: IResolvers = {
   },
 
   Mutation: {
-    sendMessage: async (_: any, args: { message: string }) => {
+    sendMessage: async (_: any, args: { message: string }, { req }) => {
+      tokenAuthenticator(req);
+
       const messageRepo = getRepository(Message);
       const userRepo = getRepository(User);
       const roomRepo = getRepository(Room);
@@ -53,7 +59,9 @@ export const resolvers: IResolvers = {
         await messageRepo
           .create({
             text: message,
-            user: (await userRepo.findOne({ where: { id: 1 } })) as User,
+            user: (await userRepo.findOne({
+              where: { id: req.user.id },
+            })) as User,
             room: (await roomRepo.findOne({ where: { id: 1 } })) as Room,
           })
           .save();

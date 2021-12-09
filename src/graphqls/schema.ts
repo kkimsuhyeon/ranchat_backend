@@ -9,6 +9,11 @@ import * as message from "./message";
 import * as demo from "./demo";
 
 const typeDef = gql`
+  enum Bio {
+    M
+    W
+  }
+
   scalar JSON
   scalar Date
 

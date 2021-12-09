@@ -8,17 +8,32 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from "typeorm";
-import { Message } from "./Message";
 
+import { Message } from "./Message";
 import { Room } from "./Room";
 
 @Entity()
 export class User extends BaseEntity {
-  @PrimaryGeneratedColumn()
-  id!: number;
+  @PrimaryGeneratedColumn("uuid")
+  id!: string;
+
+  @Column({ unique: true })
+  email!: string;
 
   @Column()
-  name: string;
+  password!: string;
+
+  @Column({ nullable: true })
+  firstName!: string;
+
+  @Column({ nullable: true })
+  lastName!: string;
+
+  @Column({ nullable: true })
+  bio: "M" | "W";
+
+  @Column({ nullable: true })
+  loginSecret: string;
 
   @ManyToMany(() => Room, (room) => room.users)
   rooms: Array<Room>;

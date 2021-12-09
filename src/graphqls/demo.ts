@@ -3,9 +3,12 @@ import { IResolvers } from "@graphql-tools/utils";
 
 import { pubSub } from "../server";
 
+import { tokenAuthenticator } from "../utils/authenticator";
+
 export const typeDef = gql`
   extend type Query {
     hello: String!
+    checkAuth: Boolean!
   }
 
   extend type Mutation {
@@ -22,6 +25,11 @@ export const resolvers: IResolvers = {
     hello: () => {
       return "hello";
     },
+
+    checkAuth: (_: any, _args: any, { req }) => {
+      tokenAuthenticator(req);
+      return true;
+    },
   },
 
   Mutation: {
@@ -32,7 +40,11 @@ export const resolvers: IResolvers = {
 
   Subscription: {
     call: {
-      subscribe: () => pubSub.asyncIterator("call"),
+      subscribe: () => {
+        console.log("testSub");
+        return pubSub.asyncIterator("call");
+      },
+      resolve: () => {},
     },
   },
 };
