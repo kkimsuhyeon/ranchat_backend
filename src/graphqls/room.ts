@@ -4,6 +4,8 @@ import { getRepository } from "typeorm";
 
 import { pubSub } from "../server";
 
+import { tokenAuthenticator } from "../utils/authenticator";
+
 import { Room } from "../entities/Room";
 import { User } from "../entities/User";
 
@@ -47,8 +49,9 @@ export const resolvers: IResolvers = {
       }
     },
 
-    roomById: async (_: any, args: { id: number }) => {
+    roomById: async (_: any, args: { id: number }, { req }) => {
       const roomRepo = getRepository(Room);
+      tokenAuthenticator(req);
 
       const { id } = args;
 
@@ -66,7 +69,7 @@ export const resolvers: IResolvers = {
   },
 
   Mutation: {
-    createRoom: async () => {
+    createRoom: async (_: any, __: any, { req }) => {
       const roomRepo = getRepository(Room);
       const userRepo = getRepository(User);
 
@@ -74,8 +77,10 @@ export const resolvers: IResolvers = {
         const result = await roomRepo
           .create({
             users: [
-              (await userRepo.findOne({ where: { id: 1 } })) as User,
-              (await userRepo.findOne({ where: { id: 2 } })) as User,
+              (await userRepo.findOne({
+                where: { email: req.user.email },
+              })) as User,
+              (await userRepo.findOne({ where: { email: "test1" } })) as User,
             ],
           })
           .save();

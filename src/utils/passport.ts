@@ -19,6 +19,7 @@ const verifyUser: VerifyCallback = async (payload, done) => {
     const userRepo = getRepository(User);
     const user = await userRepo.findOne({ where: { id: payload.id } });
 
+    console.log(user);
     if (user !== null) return done(null, user);
     return done(null, false);
   } catch (e) {

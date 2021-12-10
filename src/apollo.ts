@@ -24,7 +24,7 @@ const apolloConnection = async (app: Application, server: Server) => {
       execute: execute,
       subscribe: subscribe,
       onConnect: async (connectionParams: ConnectionParams) => {
-        const jsonData = decodeToken(connectionParams.Authorization);
+        const jsonData = decodeToken(connectionParams["authorization"]);
         const userRepo = getRepository(User);
         const user = await userRepo.findOne({ where: { id: jsonData.id } });
         if (!user) throw new Error("Token이 없습니다.");

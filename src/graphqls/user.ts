@@ -3,6 +3,7 @@ import { IResolvers } from "@graphql-tools/utils";
 import { getRepository } from "typeorm";
 
 import { encodeToken } from "../utils/generate";
+import { tokenAuthenticator } from "../utils/authenticator";
 
 import { CustomError } from "../class/CustomError";
 
@@ -48,7 +49,8 @@ export const resolvers: IResolvers = {
   },
 
   Query: {
-    users: async () => {
+    users: async (_: any, __: any, { req }) => {
+      tokenAuthenticator(req);
       const userRepo = getRepository(User);
       try {
         const users = await userRepo.find({ relations: ["rooms", "messages"] });
@@ -71,9 +73,12 @@ export const resolvers: IResolvers = {
 
         if (user) return encodeToken(user.id);
 
-        throw new CustomError("200", "아이디, 비밀번호를 확인해주세요");
+        return new CustomError({
+          message: "아이디 / 비밀번호 확인",
+          code: "401",
+        });
       } catch (e) {
-        throw new CustomError("500", e);
+        throw Error(e);
       }
     },
   },
