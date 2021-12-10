@@ -71,7 +71,7 @@ export const resolvers: IResolvers = {
           where: { email: email, password: password },
         });
 
-        if (user) return encodeToken(user.id);
+        if (user) return encodeToken(user.id, user.email);
 
         return new CustomError({
           message: "아이디 / 비밀번호 확인",

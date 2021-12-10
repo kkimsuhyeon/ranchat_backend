@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken";
 
-export const encodeToken = (id: string) => {
-  return jwt.sign({ id: id }, "secret");
+export const encodeToken = (id: string, email: string) => {
+  return jwt.sign({ id, email }, "secret");
 };
 
 export const decodeToken = (token: string) => {
