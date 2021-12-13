@@ -13,6 +13,8 @@ import {
 } from "apollo-server-core";
 import { getRepository } from "typeorm";
 
+import { CustomError } from "./class/CustomError";
+
 import { decodeToken } from "./utils/generate";
 
 import { User } from "./entities/User";
@@ -27,7 +29,9 @@ const apolloConnection = async (app: Application, server: Server) => {
         const jsonData = decodeToken(connectionParams["authorization"]);
         const userRepo = getRepository(User);
         const user = await userRepo.findOne({ where: { id: jsonData.id } });
-        if (!user) throw new Error("Token이 없습니다.");
+        if (!user)
+          return new CustomError({ code: "499", message: "token error" });
+        return
       },
     },
     { server: server, path: "/graphql" }
