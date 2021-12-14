@@ -24,12 +24,12 @@ export const typeDef = gql`
   }
 
   extend type Mutation {
-    createRoom: Room
+    createRoomByUserId(userId: String!): Boolean
     deleteRoomById(id: Int!): Boolean
   }
 
   extend type Subscription {
-    roomListUpdate: Room
+    roomListUpdate: User
     chattingUpdate: Room
   }
 `;
@@ -42,6 +42,7 @@ export const resolvers: IResolvers = {
       try {
         const rooms = await roomRepo.find({
           relations: ["users", "messages", "messages.user"],
+          order: { id: "ASC" },
         });
         return rooms;
       } catch (e) {
@@ -72,26 +73,33 @@ export const resolvers: IResolvers = {
   },
 
   Mutation: {
-    createRoom: async (_: any, __: any, { req }) => {
+    createRoomByUserId: async (_: any, args: { userId: string }, { req }) => {
+      const { userId } = args;
+
       const roomRepo = getRepository(Room);
       const userRepo = getRepository(User);
 
       try {
-        const result = await roomRepo
+        await roomRepo
           .create({
             users: [
-              (await userRepo.findOne({
-                where: { email: req.user.email },
-              })) as User,
-              (await userRepo.findOne({ where: { email: "test1" } })) as User,
+              (await userRepo.findOne({ where: { id: req.user.id } })) as User,
+              (await userRepo.findOne({ where: { id: userId } })) as User,
             ],
           })
           .save();
 
-        return result;
+        pubSub.publish("room", {
+          roomListUpdate: await userRepo.findOne({
+            where: { id: req.user.id },
+            relations: ["rooms", "rooms.messages"],
+          }),
+        });
+
+        return true;
       } catch (e) {
         console.log(e);
-        return null;
+        return false;
       }
     },
 
