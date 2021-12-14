@@ -19,7 +19,7 @@ const httpServer = createServer(app);
 export const pubSub = new PubSub();
 
 app.use(logger("dev"));
-app.use(cors({ origin: "http://localhost:3000", credentials: true }));
+app.use(cors({ origin: "*", credentials: true }));
 
 app.use("/graphql", (req, res, next) => {
   passport.authenticate("jwt", { session: false }, (_error, user, _info) => {

@@ -1,6 +1,6 @@
 import { gql } from "apollo-server-core";
 import { IResolvers } from "@graphql-tools/utils";
-import { getRepository } from "typeorm";
+import { getRepository, Like } from "typeorm";
 
 import { encodeToken } from "../utils/generate";
 import { tokenAuthenticator } from "../utils/authenticator";
@@ -27,6 +27,7 @@ export const typeDef = gql`
 
   extend type Query {
     users: [User]
+    userByEmail(email: String!): [User]
     requestToken(email: String!, password: String): String!
   }
 
@@ -55,6 +56,24 @@ export const resolvers: IResolvers = {
       try {
         const users = await userRepo.find({ relations: ["rooms", "messages"] });
         return users;
+      } catch (e) {
+        console.log(e);
+        return null;
+      }
+    },
+
+    userByEmail: async (_: any, args: { email?: string }, { req }) => {
+      tokenAuthenticator(req);
+
+      const { email } = args;
+
+      const userRepo = getRepository(User);
+
+      try {
+        const user = await userRepo.find({
+          where: { email: Like(`%${email}%`) },
+        });
+        return user;
       } catch (e) {
         console.log(e);
         return null;

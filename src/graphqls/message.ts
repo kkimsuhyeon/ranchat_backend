@@ -66,8 +66,8 @@ export const resolvers: IResolvers = {
           })
           .save();
 
-        pubSub.publish("update", {
-          update: await roomRepo.findOne({
+        pubSub.publish("chatting", {
+          chattingUpdate: await roomRepo.findOne({
             where: { id: 1 },
             relations: ["users", "messages", "messages.user"],
           }),

@@ -31,7 +31,7 @@ const apolloConnection = async (app: Application, server: Server) => {
         const user = await userRepo.findOne({ where: { id: jsonData.id } });
         if (!user)
           return new CustomError({ code: "499", message: "token error" });
-        return
+        return;
       },
     },
     { server: server, path: "/graphql" }

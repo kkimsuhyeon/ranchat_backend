@@ -29,7 +29,8 @@ export const typeDef = gql`
   }
 
   extend type Subscription {
-    update: Room
+    roomListUpdate: Room
+    chattingUpdate: Room
   }
 `;
 
@@ -110,8 +111,7 @@ export const resolvers: IResolvers = {
   },
 
   Subscription: {
-    update: {
-      subscribe: () => pubSub.asyncIterator("update"),
-    },
+    roomListUpdate: { subscribe: () => pubSub.asyncIterator("room") },
+    chattingUpdate: { subscribe: () => pubSub.asyncIterator("chatting") },
   },
 };
