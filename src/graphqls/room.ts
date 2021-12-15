@@ -52,10 +52,9 @@ export const resolvers: IResolvers = {
     },
 
     roomById: async (_: any, args: { id: number }, { req }) => {
-      const roomRepo = getRepository(Room);
+      tokenAuthenticator(req);
 
-      const error = tokenAuthenticator(req);
-      if (error) return error;
+      const roomRepo = getRepository(Room);
 
       const { id } = args;
 

@@ -5,7 +5,7 @@ import { getRepository, Like } from "typeorm";
 import { encodeToken } from "../utils/generate";
 import { tokenAuthenticator } from "../utils/authenticator";
 
-import { CustomError } from "../class/CustomError";
+import { CustomApolloError } from "../class/CustomError";
 
 import { User } from "../entities/User";
 
@@ -92,7 +92,7 @@ export const resolvers: IResolvers = {
 
         if (user) return encodeToken(user.id, user.email);
 
-        return new CustomError({
+        return new CustomApolloError({
           message: "아이디 / 비밀번호 확인",
           code: "401",
         });
