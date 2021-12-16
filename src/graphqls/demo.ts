@@ -7,12 +7,14 @@ import { pubSub } from "../server";
 import { tokenAuthenticator } from "../utils/authenticator";
 
 import { User } from "../entities/User";
+import { Room } from "../entities/Room";
 
 export const typeDef = gql`
   extend type Query {
     hello: String!
-    checkAuth: Boolean!
-    testArray(userEmail: String): User
+    checkAuth: [User]
+    testSelect(userEmail: String): User
+    testWhere(roomId: Int): Room
   }
 
   extend type Mutation {
@@ -30,12 +32,22 @@ export const resolvers: IResolvers = {
       return "hello";
     },
 
-    checkAuth: (_: any, _args: any, { req }) => {
+    checkAuth: async (_: any, _args: any, { req }) => {
       tokenAuthenticator(req);
-      return true;
+
+      const userRepo = getRepository(User);
+
+      const users = await userRepo
+        .createQueryBuilder("user")
+        .where("user.id IN (:...userId)", {
+          userId: [req.user.id, "dcaed30e-8d0f-4e0c-87bf-ab89c722beb9"],
+        })
+        .getMany();
+
+      return users;
     },
 
-    testArray: async (_: any, args: { userEmail: string }) => {
+    testSelect: async (_: any, args: { userEmail: string }) => {
       const userRepo = getRepository(User);
 
       const { userEmail } = args;
@@ -49,6 +61,27 @@ export const resolvers: IResolvers = {
         .getOne();
 
       return result;
+    },
+
+    testWhere: async (_: any, args: { roomId: number }, { req }) => {
+      const roomRepo = getRepository(Room);
+
+      const { roomId } = args;
+      try {
+        const room = await roomRepo
+          .createQueryBuilder("room")
+          .leftJoinAndSelect("room.users", "users")
+          .where("room.id = :roomId", { roomId: roomId })
+          .getOne();
+
+        if (room && room.users.some((user) => user.id === req.user.id)) {
+          return room;
+        }
+        return null;
+      } catch (e) {
+        console.log(e);
+        return e;
+      }
     },
   },
 

@@ -29,8 +29,8 @@ export const typeDef = gql`
   }
 
   extend type Subscription {
-    roomListUpdate: User
-    chattingUpdate: Room
+    roomListUpdate: Room
+    chattingUpdate: Message
   }
 `;
 
@@ -40,11 +40,16 @@ export const resolvers: IResolvers = {
       const roomRepo = getRepository(Room);
 
       try {
-        const rooms = await roomRepo.find({
-          relations: ["users", "messages", "messages.user"],
-          order: { id: "ASC" },
-        });
-        return rooms;
+        const result = await roomRepo
+          .createQueryBuilder("room")
+          .leftJoinAndSelect("room.users", "users")
+          .leftJoinAndSelect("room.messages", "messages")
+          .leftJoinAndSelect("messages.user", "user")
+          .orderBy("messages.createdAt", "DESC", "NULLS LAST")
+          .addOrderBy("room.createdAt", "DESC")
+          .getMany();
+
+        return result;
       } catch (e) {
         console.log(e);
         return null;
@@ -59,11 +64,16 @@ export const resolvers: IResolvers = {
       const { id } = args;
 
       try {
-        const room = await roomRepo.findOne({
-          where: { id: id },
-          relations: ["users", "messages", "messages.user"],
-        });
-        return room;
+        const result = await roomRepo
+          .createQueryBuilder("room")
+          .leftJoinAndSelect("room.users", "users")
+          .leftJoinAndSelect("room.messages", "messages")
+          .leftJoinAndSelect("messages.user", "user")
+          .where("room.id = :roomId", { roomId: id })
+          .orderBy("messages.createdAt", "ASC")
+          .getOne();
+
+        return result;
       } catch (e) {
         console.log(e);
         return null;
@@ -79,21 +89,16 @@ export const resolvers: IResolvers = {
       const userRepo = getRepository(User);
 
       try {
-        await roomRepo
-          .create({
-            users: [
-              (await userRepo.findOne({ where: { id: req.user.id } })) as User,
-              (await userRepo.findOne({ where: { id: userId } })) as User,
-            ],
-          })
-          .save();
+        const users = await userRepo
+          .createQueryBuilder("user")
+          .where("user.id IN (:...userId)", { userId: [req.user.id, userId] })
+          .getMany();
 
-        pubSub.publish("room", {
-          roomListUpdate: await userRepo.findOne({
-            where: { id: req.user.id },
-            relations: ["rooms", "rooms.messages"],
-          }),
-        });
+        const newRoom = new Room();
+        Object.assign(newRoom, { users });
+        roomRepo.save(newRoom);
+
+        pubSub.publish("room", { roomListUpdate: newRoom });
 
         return true;
       } catch (e) {
@@ -108,7 +113,12 @@ export const resolvers: IResolvers = {
       const { id } = args;
 
       try {
-        await roomRepo.delete({ id: id });
+        await roomRepo
+          .createQueryBuilder("room")
+          .delete()
+          .where("room.id = :id", { id: id })
+          .execute();
+
         return true;
       } catch (e) {
         console.log(e);

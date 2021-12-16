@@ -9,7 +9,6 @@ import { CustomApolloError } from "../class/CustomError";
 import { tokenAuthenticator } from "../utils/authenticator";
 
 import { Message } from "../entities/Message";
-import { User } from "../entities/User";
 import { Room } from "../entities/Room";
 
 export const typeDef = gql`
@@ -38,7 +37,12 @@ export const resolvers: IResolvers = {
       const messageRepo = getRepository(Message);
 
       try {
-        const result = await messageRepo.find({ relations: ["user", "room"] });
+        const result = await messageRepo
+          .createQueryBuilder("message")
+          .leftJoinAndSelect("message.user", "user")
+          .leftJoinAndSelect("message.room", "room")
+          .getMany();
+
         return result;
       } catch (e) {
         console.log(e);
@@ -55,34 +59,38 @@ export const resolvers: IResolvers = {
     ) => {
       tokenAuthenticator(req);
 
-      // 방에 참가자가 아닌 user는 메세지 전송하면 안됨.
-
       const messageRepo = getRepository(Message);
-      const userRepo = getRepository(User);
       const roomRepo = getRepository(Room);
 
       const { message, roomId } = args;
 
       try {
-        const user = (await userRepo.findOne({
-          where: { id: req.user.id },
-        })) as User;
+        const room = await roomRepo
+          .createQueryBuilder("room")
+          .leftJoinAndSelect("room.users", "users")
+          .leftJoinAndSelect("room.messages", "messages")
+          .where("room.id = :roomId", { roomId: roomId })
+          .getOne();
 
-        const room = (await roomRepo.findOne({
-          where: { id: roomId },
-          relations: ["users", "messages", "messages.user"],
-        })) as Room;
+        if (!room || !room.users.some((user) => user.id === req.user.id)) {
+          return new CustomApolloError({
+            message: "채팅방을 확인해주세요",
+            code: "431",
+          });
+        }
 
-        if (!user)
-          return new CustomApolloError({ message: "user 확인", code: "421" });
-        if (!room)
-          return new CustomApolloError({ message: "채팅방 확인", code: "422" });
+        const newMessage = new Message();
+        Object.assign(newMessage, {
+          text: message,
+          user: room.users.filter((user) => user.id === req.user.id)[0],
+          room: room,
+        });
 
-        await messageRepo
-          .create({ text: message, user: user, room: room })
-          .save();
+        await messageRepo.save(newMessage);
 
-        pubSub.publish("chatting", { chattingUpdate: room });
+        pubSub.publish("chatting", { chattingUpdate: newMessage });
+        pubSub.publish("room", { roomListUpdate: room });
+
         return true;
       } catch (e) {
         console.log(e);

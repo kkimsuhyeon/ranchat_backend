@@ -1,6 +1,6 @@
 import { gql } from "apollo-server-core";
 import { IResolvers } from "@graphql-tools/utils";
-import { getRepository, Like } from "typeorm";
+import { getRepository } from "typeorm";
 
 import { encodeToken } from "../utils/generate";
 import { tokenAuthenticator } from "../utils/authenticator";
@@ -52,17 +52,19 @@ export const resolvers: IResolvers = {
   Query: {
     users: async (_: any, __: any, { req }) => {
       tokenAuthenticator(req);
+
       const userRepo = getRepository(User);
+
       try {
-        const users = await userRepo.find({ relations: ["rooms", "messages"] });
-        return users;
+        const result = await userRepo.createQueryBuilder("users").getMany();
+        return result;
       } catch (e) {
         console.log(e);
         return null;
       }
     },
 
-    userByEmail: async (_: any, args: { email?: string }, { req }) => {
+    userByEmail: async (_: any, args: { email: string }, { req }) => {
       tokenAuthenticator(req);
 
       const { email } = args;
@@ -70,10 +72,12 @@ export const resolvers: IResolvers = {
       const userRepo = getRepository(User);
 
       try {
-        const user = await userRepo.find({
-          where: { email: Like(`%${email}%`) },
-        });
-        return user;
+        const result = await userRepo
+          .createQueryBuilder("user")
+          .where("user.email LIKE :email", { email: `%${email}%` })
+          .getMany();
+
+        return result;
       } catch (e) {
         console.log(e);
         return null;
@@ -86,9 +90,11 @@ export const resolvers: IResolvers = {
       const { email, password } = args;
 
       try {
-        const user = await userRepo.findOne({
-          where: { email: email, password: password },
-        });
+        const user = await userRepo
+          .createQueryBuilder("user")
+          .where("user.email = :email", { email: email })
+          .andWhere("user.password = :password", { password: password })
+          .getOne();
 
         if (user) return encodeToken(user.id, user.email);
 
@@ -118,10 +124,12 @@ export const resolvers: IResolvers = {
       const { bio, email, firstName, lastName, password } = args;
 
       try {
-        const user = await userRepo
-          .create({ bio, email, firstName, lastName, password })
-          .save();
-        if (user) return user;
+        const newUser = new User();
+        Object.assign(newUser, { email, password, firstName, lastName, bio });
+
+        const result = await userRepo.save(newUser);
+
+        if (result) return result;
         return null;
       } catch (e) {
         console.log(e);
