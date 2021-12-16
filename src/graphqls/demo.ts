@@ -12,7 +12,7 @@ export const typeDef = gql`
   extend type Query {
     hello: String!
     checkAuth: Boolean!
-    testArray(userId: String): User
+    testArray(userEmail: String): User
   }
 
   extend type Mutation {
@@ -35,17 +35,20 @@ export const resolvers: IResolvers = {
       return true;
     },
 
-    testArray: async (_: any, args: { userId: string }) => {
+    testArray: async (_: any, args: { userEmail: string }) => {
       const userRepo = getRepository(User);
 
-      const { userId } = args;
+      const { userEmail } = args;
 
-      const test = userRepo.findOne({
-        relations: ["rooms"],
-        where: { id: userId },
-      });
+      const result = await userRepo
+        .createQueryBuilder("user")
+        .where("user.email = :email ", { email: userEmail })
+        .leftJoinAndSelect("user.rooms", "rooms")
+        .leftJoinAndSelect("rooms.users", "users")
+        .leftJoinAndSelect("user.messages", "messages")
+        .getOne();
 
-      return test;
+      return result;
     },
   },
 
