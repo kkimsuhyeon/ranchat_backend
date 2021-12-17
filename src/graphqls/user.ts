@@ -2,8 +2,9 @@ import { gql } from "apollo-server-core";
 import { IResolvers } from "@graphql-tools/utils";
 import { getRepository } from "typeorm";
 
-import { encodeToken } from "../utils/generate";
+import { encodeToken, generateSecret } from "../utils/generate";
 import { tokenAuthenticator } from "../utils/authenticator";
+import { sendEmail } from "../utils/sendEmail";
 
 import { CustomApolloError } from "../class/CustomError";
 
@@ -18,6 +19,7 @@ export const typeDef = gql`
     lastName: String!
     fullName: String
     bio: Bio
+    emailAuth: Boolean
     loginSecret: String
     rooms: [Room]
     messages: [Message]
@@ -29,6 +31,7 @@ export const typeDef = gql`
     users: [User]
     userByEmail(email: String!): [User]
     requestToken(email: String!, password: String): String!
+    checkEmail: Boolean!
   }
 
   extend type Mutation {
@@ -39,6 +42,7 @@ export const typeDef = gql`
       lastName: String!
       bio: Bio
     ): User
+    requestSecretCode: Boolean
   }
 `;
 
@@ -106,6 +110,10 @@ export const resolvers: IResolvers = {
         throw Error(e);
       }
     },
+
+    checkEmail: async () => {
+      return false;
+    },
   },
 
   Mutation: {
@@ -125,7 +133,14 @@ export const resolvers: IResolvers = {
 
       try {
         const newUser = new User();
-        Object.assign(newUser, { email, password, firstName, lastName, bio });
+        Object.assign(newUser, {
+          email,
+          password,
+          firstName,
+          lastName,
+          bio,
+          emailAuth: false,
+        });
 
         const result = await userRepo.save(newUser);
 
@@ -134,6 +149,27 @@ export const resolvers: IResolvers = {
       } catch (e) {
         console.log(e);
         return null;
+      }
+    },
+    requestSecretCode: async (_: any, __: any, { req }) => {
+      tokenAuthenticator(req);
+
+      const secretCode = generateSecret();
+
+      const userRepo = getRepository(User);
+
+      try {
+        userRepo
+          .createQueryBuilder("user")
+          .where("user.id :=userId", { userId: req.user.id })
+          .update()
+          .set({ loginSecret: secretCode });
+        await sendEmail({ to: req.user.email, html: secretCode });
+
+        return true;
+      } catch (e) {
+        console.log(e);
+        return false;
       }
     },
   },

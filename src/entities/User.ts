@@ -35,6 +35,9 @@ export class User extends BaseEntity {
   @Column({ nullable: true })
   loginSecret: string;
 
+  @Column({ default: false })
+  emailAuth: boolean;
+
   @ManyToMany(() => Room, (room) => room.users)
   rooms: Array<Room>;
 

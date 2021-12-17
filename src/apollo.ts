@@ -6,12 +6,13 @@ import {
   ConnectionParams,
 } from "subscriptions-transport-ws";
 import { execute, subscribe } from "graphql";
-import schema from "./graphqls/schema";
 import {
   ApolloServerPluginLandingPageDisabled,
   ApolloServerPluginLandingPageGraphQLPlayground,
 } from "apollo-server-core";
 import { getRepository } from "typeorm";
+
+import schema from "./graphqls/schema";
 
 import { CustomApolloError } from "./class/CustomError";
 
