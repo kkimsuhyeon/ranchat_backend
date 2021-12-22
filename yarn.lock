@@ -326,6 +326,13 @@
     "@types/mime" "^1"
     "@types/node" "*"
 
+"@types/ws@^8.2.2":
+  version "8.2.2"
+  resolved "https://registry.yarnpkg.com/@types/ws/-/ws-8.2.2.tgz#7c5be4decb19500ae6b3d563043cd407bf366c21"
+  integrity sha512-NOn5eIcgWLOo6qW8AcuLZ7G8PycXu0xTxxkS6Q18VWFxgPUSOwV0pBj2a/4viNZVu25i7RIB7GttdkAIUUXOOg==
+  dependencies:
+    "@types/node" "*"
+
 "@types/zen-observable@0.8.3":
   version "0.8.3"
   resolved "https://registry.yarnpkg.com/@types/zen-observable/-/zen-observable-0.8.3.tgz#781d360c282436494b32fe7d9f7f8e64b3118aa3"
@@ -2229,6 +2236,11 @@ write-file-atomic@^3.0.0:
   version "7.5.6"
   resolved "https://registry.yarnpkg.com/ws/-/ws-7.5.6.tgz#e59fc509fb15ddfb65487ee9765c5a51dec5fe7b"
   integrity sha512-6GLgCqo2cy2A2rjCNFlxQS6ZljG/coZfZXclldI8FB/1G3CCI36Zd8xy2HrFVACi8tfk5XrgLQEk+P0Tnz9UcA==
+
+ws@^8.4.0:
+  version "8.4.0"
+  resolved "https://registry.yarnpkg.com/ws/-/ws-8.4.0.tgz#f05e982a0a88c604080e8581576e2a063802bed6"
+  integrity sha512-IHVsKe2pjajSUIl4KYMQOdlyliovpEPquKkqbwswulszzI7r0SfQrxnXdWAEqOlDCLrVSJzo+O1hAwdog2sKSQ==
 
 xdg-basedir@^4.0.0:
   version "4.0.0"

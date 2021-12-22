@@ -22,7 +22,7 @@ export const typeDef = gql`
   }
 
   extend type Subscription {
-    call: Boolean
+    call: String
   }
 `;
 
@@ -87,16 +87,14 @@ export const resolvers: IResolvers = {
 
   Mutation: {
     requestCall: () => {
-      pubSub.publish("call", { call: true });
+      pubSub.publish("call", { call: "true" });
+      return true;
     },
   },
 
   Subscription: {
     call: {
-      subscribe: () => {
-        return pubSub.asyncIterator("call");
-      },
-      resolve: () => {},
+      subscribe: () => pubSub.asyncIterator("call"),
     },
   },
 };

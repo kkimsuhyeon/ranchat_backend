@@ -10,6 +10,8 @@ import passport from "passport";
 
 import dbConnection from "./database";
 import apolloConnection from "./apollo";
+import Socket from "./Socket";
+import router from "./controllers";
 
 dotenv.config();
 
@@ -20,6 +22,10 @@ export const pubSub = new PubSub();
 
 app.use(logger("dev"));
 app.use(cors({ origin: "*", credentials: true }));
+app.use(express.urlencoded({ extended: false, limit: "50mb" }));
+app.use(express.json({ limit: "50mb" }));
+
+app.use(router);
 
 app.use("/graphql", (req, res, next) => {
   passport.authenticate("jwt", { session: false }, (_error, user, _info) => {
@@ -29,6 +35,7 @@ app.use("/graphql", (req, res, next) => {
 });
 
 dbConnection();
+new Socket(httpServer);
 apolloConnection(app, httpServer);
 
 export default httpServer;
