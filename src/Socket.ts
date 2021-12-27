@@ -1,44 +1,45 @@
-import WebSocket, { Server as WebServer } from "ws";
-import { IncomingMessage, Server } from "http";
-import { parse } from "url";
+import CustomWebServer from "./class/CustomWebServer";
+import CustomWebSocket from "./class/CustomWebSocket";
+
 
 class Socket {
-  wss: WebServer;
+  wss: CustomWebServer;
 
-  constructor(server: Server) {
-    this.wss = new WebServer({ path: "/ws", noServer: true });
-
-    server.on("upgrade", (request: IncomingMessage, socket, head) => {
-      const { pathname } = parse(request.url as string);
-
-      if (pathname === "/ws") {
-        this.wss.handleUpgrade(request, socket, head, (ws) => {
-          this.initWebServer();
-          this.wss.emit("connection", ws, request);
-        });
-      }
-      if (pathname === "/graphql") {
-      } else {
-        socket.destroy();
-      }
-    });
+  constructor() {
+    if (this.wss === undefined) this.initWebServer();
   }
 
   private initWebServer() {
-    this.wss.on("connection", (ws: WebSocket) => {
-      console.log("connect");
+    this.wss = new CustomWebServer({ port: 4001 });
 
-      ws.on("message", (message: string) => {
-        console.log("message", message);
-      });
-    });
+    this.wss.on("connection", (ws: CustomWebSocket) => {
 
-    this.wss.on("close", (error: any) => {
-      console.log(error);
-    });
 
-    this.wss.on("error", (error) => {
-      console.log(error);
+      ws.on("message", (event) => {
+        const data = JSON.parse(event.toString());
+
+        if (data.type === "subscribe") {
+          ws.status = data.type;
+          ws.channel = data.channel
+        }
+
+        if (data.type === "unsubscribe") {
+          ws.status = data.type;
+          ws.channel = undefined
+        }
+
+        if (data.type === "push") {
+          this.wss.clients.forEach((socket) => {
+            if (socket.status === "subscribe") {
+              if (socket.channel === data.channel) {
+                socket.send("test")
+              }
+            }
+            {
+            }
+          })
+        }
+      })
     });
   }
 }

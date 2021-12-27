@@ -34,8 +34,8 @@ app.use("/graphql", (req, res, next) => {
   })(req, res, next);
 });
 
+new Socket();
 dbConnection();
-new Socket(httpServer);
 apolloConnection(app, httpServer);
 
 export default httpServer;

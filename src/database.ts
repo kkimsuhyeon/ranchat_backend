@@ -18,6 +18,8 @@ const dbConnection = async () => {
     });
 
     await db.synchronize();
+
+    console.log("db connect");
   } catch (e) {
     throw new Error(e);
   }
