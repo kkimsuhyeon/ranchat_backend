@@ -56,6 +56,7 @@ export const resolvers: IResolvers = {
   Query: {
     users: async (_: any, __: any, { req }) => {
       // tokenAuthenticator(req);
+      console.log(req);
 
       const userRepo = getRepository(User);
 

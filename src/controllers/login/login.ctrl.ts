@@ -4,17 +4,13 @@ import { getRepository } from "typeorm";
 import { User } from "../../entities/User";
 
 export const postLogin = async (
-  req: Request<{ email: string }>,
+  _req: Request<{ email: string }>,
   res: Response
 ) => {
   const userRepo = getRepository(User);
 
   try {
     const newUser = new User();
-
-    const {
-      params: { email },
-    } = req;
 
     Object.assign(newUser, {
       email: "test",
